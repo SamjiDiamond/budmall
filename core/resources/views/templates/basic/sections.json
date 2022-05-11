@@ -1,0 +1,251 @@
+{
+    "banner_sliders": {
+        "builder": true,
+        "name": "Banner Sliders",
+        "element": {
+            "images": {
+                "slider": {
+                    "size": "800x471"
+                }
+            },
+            "link": "text",
+            "modal": true
+        }
+    },
+    "banner_promotional": {
+        "builder": true,
+        "name": "Promotional Banner",
+        "element": {
+            "images": {
+                "image": {
+                    "size": "600x500"
+                }
+            },
+            "link": "text",
+            "modal": true
+        }
+    },
+    "invite": {
+        "builder": true,
+        "name": "Invite Users",
+        "content": {
+            "text": "text",
+            "button_text": "text",
+            "button_link": "text"
+        }
+    },
+
+    "invite_seller": {
+        "builder": true,
+        "name": "Invite Sellers",
+        "content": {
+            "text": "text",
+            "button_text": "text",
+            "button_link": "text"
+        }
+    },
+    "subscribe": {
+        "builder": true,
+        "name": "Subscribe Section",
+        "content": {
+            "text": "text"
+        }
+    },
+    "pages": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Pages",
+        "element": {
+            "pageTitle": "text",
+            "description": "textarea-nic",
+            "modal":false
+        }
+
+    },
+    "social_media_links": {
+        "builder": true,
+        "name": "Social Media",
+        "element": {
+            "title": "text",
+            "social_icon": "icon",
+            "url": "text",
+            "modal": true
+        }
+    },
+    "footer": {
+        "builder": true,
+        "name": "Footer",
+        "content": {
+            "images":{
+                "payment_methods":{
+                    "size": "250x30"
+                }
+            },
+            "cell_number": "text",
+            "time": "text",
+            "email": "text",
+            "contact_address": "textarea",
+            "footer_note": "textarea",
+            "copyright_text": "text"
+
+        }
+    },
+
+    "register_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Register Page",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "650x980"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "login_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Login Page",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x840"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+
+    "seller_register_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Seller's Register",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "650x980"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "seller_login_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Seller's Login",
+        "content": {
+            "images":{
+                "image":{
+                   "size": "600x840"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+
+    "forgot_password_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Forgot Password",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x600"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "code_verify_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Code Verify",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x600"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "reset_password_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Reset Password",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x600"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "authorize_email_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Authorize Email",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x600"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+
+    "authorize_sms_page": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Authorize SMS",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "600x600"
+                }
+            },
+            "title": "text",
+            "description": "textarea"
+        }
+    },
+    "contact": {
+        "builder": true,
+        "no_selection": true,
+        "name": "Contact Page",
+        "content": {
+            "images":{
+                "image":{
+                    "size": "660x700"
+                }
+            },
+            "title": "text",
+            "short_details": "text",
+            "phone_no":"text",
+            "address":"text",
+            "email_address":"text",
+            "map_api":"text",
+            "longitude":"text",
+            "latitude":"text"
+        }
+    }
+
+}
