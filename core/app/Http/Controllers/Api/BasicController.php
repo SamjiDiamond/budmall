@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Country;
 use App\Models\GeneralSetting;
 use App\Models\Language;
 use App\Models\Offer;
@@ -14,6 +15,17 @@ use Illuminate\Http\Request;
 
 class BasicController extends Controller
 {
+
+    function country(){
+        $cons=Country::get();
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Fetched successfully',
+            'data'=>$cons
+        ]);
+    }
+
     public function generalSetting(){
     	$general = GeneralSetting::first();
 		$notify[] = 'General setting data';

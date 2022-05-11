@@ -8,13 +8,13 @@ Route::namespace('Api')->name('api.')->group(function(){
 	Route::get('languages','BasicController@languages');
 	Route::get('language-data/{code}','BasicController@languageData');
 
+    Route::get('countries', 'BasicController@country');
+
 	Route::namespace('Auth')->group(function(){
 		Route::post('login', 'LoginController@login');
 		Route::post('register', 'RegisterController@register');
 
         Route::post('sendcode', 'RegisterController@sendcode');
-
-		Route::get('countries', 'RegisterController@countrys');
 
 	    Route::post('password/email', 'ForgotPasswordController@sendResetCodeEmail');
 	    Route::post('password/verify-code', 'ForgotPasswordController@verifyCode');
