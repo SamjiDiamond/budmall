@@ -45,11 +45,16 @@ class RegisterController extends Controller
 
     public function countrys(){
         $countryData = (array)json_decode(file_get_contents(resource_path('views/partials/country.json')));
+
+        $datas['countryCodes'] = explode(',', implode(',', array_keys($countryData)));
+        $datas['mobileCodes'] = explode(',', implode(',',array_column($countryData, 'dial_code')));
+        $datas['countries'] = explode(',', implode(',',array_column($countryData, 'country')));
+
         return response()->json([
             'code'=>200,
             'status'=>true,
             'message'=>'Fetched successfully',
-            'data'=>$countryData
+            'data'=>$datas
         ]);
 
     }
