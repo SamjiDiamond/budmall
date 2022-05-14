@@ -246,4 +246,26 @@ class RegisterController extends Controller
         ]);
     }
 
+    public function usernameCheck(Request $request)
+    {
+        $input = $request->all();
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|alpha_num|unique:users|min:5',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code'=>200,
+                'status'=>false,
+                'message'=>$validator->errors()->all(),
+            ]);
+        }
+
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Proceed',
+        ]);
+    }
+
 }

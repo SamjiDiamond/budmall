@@ -15,6 +15,7 @@ Route::namespace('Api')->name('api.')->group(function(){
 		Route::post('register', 'RegisterController@register');
 
         Route::post('sendcode', 'RegisterController@sendcode');
+        Route::post('username-check', 'RegisterController@usernameCheck');
 
 	    Route::post('password/email', 'ForgotPasswordController@sendResetCodeEmail');
 	    Route::post('password/verify-code', 'ForgotPasswordController@verifyCode');
