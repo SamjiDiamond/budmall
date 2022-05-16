@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Controller;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -40,7 +41,11 @@ class WishlistController extends Controller
         }
 
         if($wishlist) {
-            return response()->json(['error' => 'Already in the wish list']);
+            return response()->json([
+                'code'=>200,
+                'status'=>false,
+                'message'=>'Already in the wish list',
+            ]);
         }else {
             $wishlist = new Wishlist();
             $wishlist->user_id    = auth()->user()->id??null;
@@ -54,8 +59,12 @@ class WishlistController extends Controller
             "id" => $request->product_id,
         ];
 
-        session()->put('wishlist', $wishlist);
-        return response()->json(['success' => 'Added to Wishlist']);
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Added to Wishlist',
+        ]);
+
     }
 
 
@@ -71,11 +80,6 @@ class WishlistController extends Controller
             })
             ->orderBy('id', 'desc')
             ->get();
-            if($w_data->count() >3){
-                $latest = $w_data->sortByDesc('id')->take(3);
-            }else{
-                $latest = $w_data;
-            }
 
         }else{
             $s_id       = session()->get('session_id');
@@ -87,46 +91,15 @@ class WishlistController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-            if($w_data->count() >3){
-                $latest = $w_data->sortByDesc('id')->take(5);
-            }else{
-                $latest = $w_data;
-            }
-        }
-        $more = $w_data->count() - count($latest);
-        $emptyMessage = 'No product in your wishlist';
-
-        return view(activeTemplate() . 'partials.wishlist_items', ['data' => $latest, 'emptyMessage'=> $emptyMessage, 'more'=>$more]);
-    }
-
-    public function getWsihListTotal(){
-        $w_data     = [];
-        $user_id    = auth()->user()->id??null;
-        if($user_id != null){
-           /* $w_data = Wishlist::where('user_id', $user_id)
-            ->with(['product', 'product.stocks', 'product.categories' ,'product.offer'])
-            ->whereHas('product', function($q){
-                return $q->whereHas('categories')->whereHas('brand');
-            })
-            ->get();*/
-              $w_data = Wishlist::where('user_id', $user_id)
-
-            ->get();
-
-        }else{
-            $s_id       = session()->get('session_id');
-          /*  $w_data     = Wishlist::where('session_id', $s_id)
-            ->with(['product', 'product.stocks', 'product.categories' ,'product.offer'])
-            ->whereHas('product', function($q){
-                return $q->whereHas('categories')->whereHas('brand');
-            })
-            ->get();*/
-             $w_data     = Wishlist::where('session_id', $s_id)
-
-            ->get();
         }
 
-        return response($w_data->count());
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>"Fetched successfully",
+            'data' => $w_data
+        ]);
+
     }
 
     public function wishList()
@@ -181,18 +154,35 @@ class WishlistController extends Controller
             }
 
         }else{
-            $wishlist   = Wishlist::findorFail($id);
+            $wishlist   = Wishlist::find($id);
+
+            if(!$wishlist){
+                return response()->json([
+                    'code'=>200,
+                    'status'=>false,
+                    'message'=>'This product isn\'t available in your Wishlist',
+                ]);
+            }
+
             $product_id = $wishlist->product_id;
             $wl         = session()->get('wishlist');
             unset($wl[$product_id]);
             session()->put('wishlist', $wl);
         }
-        Artisan::call('cache:clear');
+
         if($wishlist) {
             $wishlist->delete();
-            return response()->json(['success' => 'Deleted From Wishlist']);
+            return response()->json([
+                'code'=>200,
+                'status'=>true,
+                'message'=>'Product removed From Wishlist',
+            ]);
         }
 
-        return response()->json(['error' => 'This product isn\'t available in your wishlsit']);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'This product isn\'t available in your Wishlist',
+        ]);
     }
 }

@@ -48,11 +48,9 @@ Route::namespace('Api')->name('api.')->group(function(){
             Route::post('validate_coupon', 'CouponController@applyCoupon');
 
 //Wishlist
-            Route::get('add_to_wishlist/', 'WishlistController@addToWishList')->name('add-to-wishlist');
-            Route::get('get_wishlist_data/', 'WishlistController@getWsihList')->name('get-wishlist-data');
-            Route::get('get_wishlist_total/', 'WishlistController@getWsihListTotal')->name('get-wishlist-total');
-            Route::get('wishlist/', 'WishlistController@wishList')->name('wishlist');
-            Route::get('wishlist/remove/{id}', 'WishlistController@removeFromwishList')->name('removeFromWishlist')->where('id', '[0-9]+');
+            Route::post('add_to_wishlist', 'WishlistController@addToWishList');
+            Route::get('get_wishlist_data', 'WishlistController@getWsihList');
+            Route::get('wishlist/remove/{id}', 'WishlistController@removeFromwishList');
 
 
             Route::post('password/reset', 'ResetPasswordController@reset');
