@@ -46,7 +46,7 @@ class ResetPasswordController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'code'=>200,
-                'status'=>'ok',
+                'status'=>false,
                 'message'=>['error'=>$validator->errors()->all()],
                 'data'=>null
             ]);
@@ -56,7 +56,7 @@ class ResetPasswordController extends Controller
             $notify[] = 'Invalid verification code';
             return response()->json([
                 'code'=>200,
-                'status'=>'ok',
+                'status'=>false,
                 'message'=>['error'=>$notify],
             ]);
         }
@@ -80,7 +80,7 @@ class ResetPasswordController extends Controller
         $notify[] = 'Password changed';
         return response()->json([
             'code'=>200,
-            'status'=>'ok',
+            'status'=>true,
             'message'=>['error'=>$notify]
         ]);
     }

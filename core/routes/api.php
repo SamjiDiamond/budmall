@@ -34,6 +34,11 @@ Route::namespace('Api')->name('api.')->group(function(){
 
 	    Route::middleware(['checkStatusApi'])->group(function(){
 	    	Route::get('dashboard', 'DashboardController@dashboard');
+	    	Route::get('categories', 'DashboardController@categorys');
+	    	Route::get('productDetails/{id}', 'DashboardController@productDetails');
+
+	    	Route::post('createPin', 'DashboardController@createPin');
+	    	Route::post('validatePin', 'DashboardController@validatePin');
 
 	    	Route::get('cart', 'DashboardController@cart');
 
