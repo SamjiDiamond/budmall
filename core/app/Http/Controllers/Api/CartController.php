@@ -23,7 +23,7 @@ class CartController extends Controller
 
     public function cart(){
 
-        $datas=Cart::where("user_id", Auth::id())->get();
+        $datas=Cart::where("user_id", Auth::id())->with('product')->get();
 
         return response()->json([
             'code'=>200,

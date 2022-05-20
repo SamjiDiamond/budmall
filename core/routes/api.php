@@ -44,8 +44,13 @@ Route::namespace('Api')->name('api.')->group(function(){
 	    	Route::post('addToCart', 'CartController@addToCart');
             Route::get('remove_cart_item/{id}', 'CartController@removeCartItem');
             Route::post('shippingFee', 'CartController@calculatedelivery');
-
             Route::post('validate_coupon', 'CouponController@applyCoupon');
+            Route::post('checkout', 'OrderController@confirmOrder');
+
+            Route::get('orders', 'OrderController@orders');
+            Route::get('order/{order_number}', 'OrderController@orderDetails');
+
+            Route::post('buy-airtime', 'OrderController@airtimebuy');
 
 //Wishlist
             Route::post('add_to_wishlist', 'WishlistController@addToWishList');
