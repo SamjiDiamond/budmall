@@ -50,7 +50,19 @@ Route::namespace('Api')->name('api.')->group(function(){
             Route::get('orders', 'OrderController@orders');
             Route::get('order/{order_number}', 'OrderController@orderDetails');
 
+            Route::get('buy-airtime', 'OrderController@airtime');
             Route::post('buy-airtime', 'OrderController@airtimebuy');
+
+            Route::get('buy-data', 'OrderController@internet');
+            Route::post('buy-data', 'OrderController@internetbuy');
+
+            Route::get('cabletv', 'OrderController@cabletv');
+            Route::post('validate-iuc', 'OrderController@validatedecoder');
+            Route::post('pay-cabletv', 'OrderController@decoderpay');
+
+            Route::get('power', 'OrderController@utility');
+            Route::post('validate-meter', 'OrderController@validatebill');
+            Route::post('pay-meter', 'OrderController@billpay');
 
 //Wishlist
             Route::post('add_to_wishlist', 'WishlistController@addToWishList');
@@ -81,6 +93,8 @@ Route::namespace('Api')->name('api.')->group(function(){
             Route::get('deposit/history', 'UserController@depositHistory');
 
             Route::get('transactions', 'UserController@transactions');
+
+            Route::get('wallet/balance', 'UserController@walletBalance');
 
 	    });
 	});

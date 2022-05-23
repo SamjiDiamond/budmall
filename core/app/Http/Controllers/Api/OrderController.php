@@ -527,12 +527,13 @@ class OrderController extends Controller
 
     public function airtime()
     {
-        $pageTitle = 'Purchase Airtime';
-        $user = auth()->user();
         $network = Network::whereAirtime(1)->get();
-        $bills = Bill::whereUserId($user->id)->whereType(1)->latest()->paginate(10);
-        $emptyMessage = "No Transction At The Moment";
-        return view($this->activeTemplate. 'user.bills.airtime', compact('pageTitle', 'emptyMessage', 'bills','network','user'));
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>"Fetched successfully",
+            'data' => $network
+        ]);
     }
 
     public function airtimebuy(Request $request)
@@ -567,7 +568,7 @@ class OrderController extends Controller
             ]);
         }
         $network = Network::whereSymbol($request->network)->first();
-        $usd = $request->amount/$general->usdrate;
+        $usd = $request->amount;
 
         if(!$network)
         {
@@ -578,7 +579,17 @@ class OrderController extends Controller
             ]);
         }
 
-        if ($wallet->balance < $usd)
+        if ($usd < 1)
+        {
+            return response()->json([
+                'code'=>200,
+                'status'=>false,
+                'message'=>'Invalid amount',
+            ]);
+
+        }
+
+        if ($usd > $wallet->balance)
         {
             return response()->json([
                 'code'=>200,
@@ -614,6 +625,7 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_POSTFIELDS =>'{
         "amount": "'.$request->amount.'",
         "phone": "'.$request->phone.'",
@@ -629,7 +641,7 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
     $resp = curl_exec($curl);
     $reply = json_decode($resp, true);
     curl_close($curl);
-    //return $resp;
+//    return $resp;
     //return $reply['content']['transactions']['transactionId'];
 
 
@@ -643,26 +655,39 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
 
     if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors'],
+        ]);
     }
 
       if($reply['code'] == 014)
      {
-    return back()->with('danger', $reply['response_description'] );
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>$reply['response_description'],
+         ]);
     }
 
     if($reply['code'] != "000")
      {
-      $notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-            return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>'Sorry, We cant process this payment at the moment',
+         ]);
     }
     //return $reply;
 
     if(!isset($reply['content']['transactions']['transactionId']))
     {
-        $notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-            return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant process this payment at the moment',
+        ]);
     }
 
      if($reply['code'] == "000")
@@ -696,8 +721,11 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
             $transactions->trx = $transaction->trx;
             $transactions->save();
 
-            $notify[] = ['success', 'Airtime Recharge Was Successful'];
-            return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>true,
+             'message'=>'Airtime Recharge Was Successful',
+         ]);
 
      }
 
@@ -706,24 +734,32 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
 
      public function internet()
      {
-         $pageTitle = 'Internet Subscription';
-         $user = auth()->user();
-         $network = Network::whereAirtime(1)->get();
-         $bills = Bill::whereUserId($user->id)->whereType(2)->latest()->paginate(10);
-         $bill = Internetbundle::whereStatus(1)->get();
-         $emptyMessage = "No Transction At The Moment";
-         return view($this->activeTemplate. 'user.bills.internet', compact('pageTitle', 'emptyMessage', 'bills','network','bill','user'));
+         $plans=Internetbundle::whereStatus(1)->get();
+         return response()->json([
+             'code'=>200,
+             'status'=>true,
+             'message'=>"Fetched successfully",
+             'data' => $plans
+         ]);
      }
 
 
      public function internetbuy(Request $request)
      {
-        $request->validate([
+         $validator = Validator::make($request->all(), [
              'phone' => 'required|string|min:11|',
              'network' => 'required|string|',
              'plan' => 'required',
-
          ]);
+
+         if($validator->fails())
+         {
+             return response()->json([
+                 'code'=>200,
+                 'status'=>false,
+                 'message'=>$validator->errors()->all(),
+             ]);
+         }
 
          $settings = GeneralSetting::first();
 
@@ -744,9 +780,11 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
 
         if ($wallet->balance < $usd)
         {
-         $notify[] = ['error', 'You dont have enough balance to execute this transcation.'];
-         return back()->withNotify($notify);
-
+            return response()->json([
+                'code'=>200,
+                'status'=>false,
+                'message'=>'You dont have enough balance to execute this transcation.'
+            ]);
         }
 
          if($mode == 0)
@@ -767,6 +805,7 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
          CURLOPT_TIMEOUT => 0,
          CURLOPT_FOLLOWLOCATION => true,
          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+         CURLOPT_SSL_VERIFYPEER => false,
          CURLOPT_CUSTOMREQUEST => "POST",
          CURLOPT_POSTFIELDS =>'{
          "amount": "'.$request->amount.'",
@@ -789,26 +828,38 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
 
 
     if(!isset($reply['code'] )) {
-    $notify[] = ['warning', 'Sorry, We cant proceed with this payment at the moment. Please try again later'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant proceed with this payment at the moment. Please try again later'
+        ]);
     }
 
     if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors']
+        ]);
     }
 
       if($reply['code'] != "000")
      {
-     $notify[] = ['error', 'Sorry, We cant service your request at the moment'];
-     return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>'Sorry, We cant service your request at the moment'
+         ]);
      }
 
      if(!isset($reply['content']['transactions']['transactionId']))
     {
-        $notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-            return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant process tbis payment at the moment'
+        ]);
     }
 
      if($reply['code']== "000") {
@@ -843,8 +894,11 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
             $transactions->trx = $transaction->trx;
             $transactions->save();
 
-            $notify[] = ['success', 'Internet Subscription Was Successful'];
-            return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>true,
+             'message'=>'Internet Subscription Was Successful'
+         ]);
 
      }
 
@@ -853,23 +907,33 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
 
      public function cabletv()
      {
-         $pageTitle = 'Cable TV Subscription';
-         $user = auth()->user();
-         $network = Network::whereTv(1)->get();
-         $bills = Bill::whereUserId($user->id)->latest()->whereType(3)->paginate(10);
          $bill = Cabletvbundle::whereStatus(1)->latest()->get();
-         $emptyMessage = "No Transction At The Moment";
-         return view($this->activeTemplate. 'user.bills.cabletv', compact('pageTitle', 'emptyMessage', 'bills','network','bill','user'));
+
+         return response()->json([
+             'code'=>200,
+             'status'=>true,
+             'message'=>"Fetched successfully",
+             'data' => $bill
+         ]);
      }
 
      public function validatedecoder(Request $request)
      {
-       $request->validate([
-            'number' => 'required',
-            'decoder' => 'required|string|',
-            'plan' => 'required',
+         $validator = Validator::make($request->all(), [
+             'number' => 'required',
+             'decoder' => 'required|string',
+             'plan' => 'required',
+         ]);
 
-        ]);
+
+         if($validator->fails())
+         {
+             return response()->json([
+                 'code'=>200,
+                 'status'=>false,
+                 'message'=>$validator->errors()->all(),
+             ]);
+         }
 
         $settings = GeneralSetting::first();
 
@@ -884,10 +948,13 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
         $general = GeneralSetting::first();
         $wallet = Userwallet::whereWcode($user->wcode)->first();
         $total = $decoder->cost + env('CABLECHARGE');
-        $usd = $total/$general->usdrate;
+        $usd = $total;
          if ($usd > $wallet->balance) {
-            $notify[] = ['error', 'Insufficient Balance'];
-            return back()->withNotify($notify);
+             return response()->json([
+                 'code'=>200,
+                 'status'=>false,
+                 'message'=>'Insufficient Balance',
+             ]);
         }
 
         if($mode == 0)
@@ -909,6 +976,7 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_POSTFIELDS =>'{
          "billersCode": "'.$request->number.'",
         "serviceID": "'.$decoder->code.'"
@@ -927,61 +995,70 @@ $trx = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890') , 0 , 10 );
     //return $reply['code'];
     if(!isset($reply['code'] ))
     {
-    $notify[] = ['warning', 'Sorry, We cant proceed with this payment at the moment. Please try again later'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant proceed with this payment at the moment. Please try again later',
+        ]);
     }
 
     if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors'],
+        ]);
     }
 
     if($reply['code'] != "000") {
-    $notify[] = ['warning', 'Sorry, We cant validate this decoder/IUC number at the moment'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant validate this decoder/IUC number at the moment',
+        ]);
     }
 
     if(isset($reply['content']['Customer_Name']))
     {
-    Session::put('customer', $reply['content']['Customer_Name']);
-    Session::put('number', $request->number);
-    Session::put('planname', $decoder->name);
-    Session::put('plancode', $request->plan);
-    Session::put('decoder', $decoder->network);
-    Session::put('cost', $decoder->cost);
-    return redirect()->route('user.decodervalidated');
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Validated successfully',
+            'data' =>  $reply['content']['Customer_Name']
+        ]);
     }
 
     else
     {
-    $notify[] = ['warning', 'Sorry, We cant validate this decoder/IUC number at the moment'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant validate this decoder/IUC number at the moment',
+        ]);
     }
 
-}
-
-public function decodervalidated(){
-
-    $settings = GeneralSetting::first();
-    $customer = Session::get('customer');
-    $planname = Session::get('planname');
-    $number = Session::get('number');
-    $plancode = Session::get('plancode');
-    $decoder = Session::get('decoder');
-    $cost = Session::get('cost');
-    $pageTitle = "Cable TV Validation";
-    return view($this->activeTemplate . 'user.bills.cabletv-preview', compact('pageTitle','customer','planname','number','plancode','decoder','cost'));
 }
 
 
 public function decoderpay(Request $request)
 {
-   $request->validate([
+
+    $validator = Validator::make($request->all(), [
         'number' => 'required',
         'customer' => 'required',
-
+        'plan' => 'required',
     ]);
+
+
+    if($validator->fails())
+    {
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>$validator->errors()->all(),
+        ]);
+    }
 
 
     $decoder  = Cabletvbundle::wherePlan($request->plan)->first();
@@ -991,10 +1068,13 @@ public function decoderpay(Request $request)
     $wallet = Userwallet::whereWcode($user->wcode)->first();
 
      $total = $decoder->cost + env('CABLECHARGE');
-     $usd = $total/$general->usdrate;
+     $usd = $total;
      if ($usd > $wallet->balance) {
-        $notify[] = ['error', 'Insufficient Wallet Balance'];
-        return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>'Insufficient Wallet Balance'
+         ]);
     }
    $mode = env('MODE');
     $username = env('VTPASSUSERNAME');
@@ -1022,6 +1102,7 @@ public function decoderpay(Request $request)
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
     CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_POSTFIELDS =>'{
      "billersCode": "'.$request->number.'",
      "variation_code": "'.$request->plan.'",
@@ -1043,30 +1124,42 @@ curl_close($curl);
 
     if(!isset($reply['code'] ))
     {
-    $notify[] = ['warning', 'Sorry, We cant proceed with this payment at the moment. Please try again later'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant proceed with this payment at the moment. Please try again later'
+        ]);
     }
 
 
 
     if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors']
+        ]);
     }
 
 
     if($reply['code'] != "000")
     {
-    $notify[] = ['warning', 'Sorry, We cant process this payment at the moment'];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant process this payment at the moment'
+        ]);
     }
 
 
      if(!isset($reply['content']['transactions']['transactionId']))
     {
-        $notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-            return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant process tbis payment at the moment'
+        ]);
     }
 
 if($reply['code']== "000") {
@@ -1105,8 +1198,11 @@ if($reply['code']== "000") {
         $transactions->trx = $transaction->trx;
         $transactions->save();
 
-        $notify[] = ['success', 'Payment Was Successfully'];
-        return redirect()->route('user.cabletv')->withNotify($notify);
+    return response()->json([
+        'code'=>200,
+        'status'=>true,
+        'message'=> 'Payment Was Successfully'
+    ]);
 }
 
 
@@ -1115,18 +1211,14 @@ if($reply['code']== "000") {
 
 public function utility()
 {
-    $pageTitle = 'Utility Bills Payment';
-    $user = auth()->user();
-    $general = GeneralSetting::first();
-    $bills = Bill::whereUserId($user->id)->latest()->whereType(4)->paginate(10);
     $network = Power::whereStatus(1)->latest()->get();
-    return view($this->activeTemplate . 'user.bills.utility', compact(
-        'pageTitle',
-        'network',
-        'bills',
-        'network',
-        'user'
-    ));
+
+    return response()->json([
+        'code'=>200,
+        'status'=>true,
+        'message'=> 'Payment Was Successfully',
+        'data' => $network
+    ]);
 }
 
 
@@ -1134,13 +1226,22 @@ public function utility()
 
 public function validatebill(Request $request)
 {
-   $request->validate([
+    $validator = Validator::make($request->all(), [
         'number' => 'required',
-        'company' => 'required|string|',
+        'company' => 'required|string',
         'type' => 'required',
         'amount' => 'required|integer|min:1000',
-
     ]);
+
+
+    if($validator->fails())
+    {
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>$validator->errors()->all(),
+        ]);
+    }
 
 
     $meter  = Power::whereBillercode($request->company)->first();
@@ -1156,10 +1257,12 @@ public function validatebill(Request $request)
 
      $usd = $total/$general->usdrate;
      if ($usd > $wallet->balance) {
-        $notify[] = ['error', 'Insufficient Wallet Balance'];
-        return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>'Insufficient Wallet Balance',
+         ]);
     }
-
 
     if($mode == 0)
     {
@@ -1180,6 +1283,7 @@ public function validatebill(Request $request)
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
     CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_POSTFIELDS =>'{
      "billersCode": "'.$request->number.'",
     "serviceID": "'.$meter->billercode.'",
@@ -1197,65 +1301,54 @@ curl_close($curl);
 //return  $resp;
 
  if($reply['code'] != "000") {
-$notify[] = ['error', 'Sorry, We cant validate this decoder/IUC number at the moment'];
-return back()->withNotify($notify);
+     return response()->json([
+         'code'=>200,
+         'status'=>false,
+         'message'=>'Sorry, We cant validate this decoder/IUC number at the moment'
+     ]);
 }
 
 if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors']
+        ]);
     }
 
 if($reply['code']== "000") {
 
 if(!isset($reply['content']['Customer_Name']))
  {
-$notify[] = ['error', 'Sorry, We cant validate this Meter number at the moment'];
-return back()->withNotify($notify);
+     return response()->json([
+         'code'=>200,
+         'status'=>false,
+         'message'=>'Sorry, We cant validate this Meter number at the moment'
+     ]);
 }
 
-Session::put('customer', $reply['content']['Customer_Name']);
-Session::put('address', $reply['content']['Address']);
-Session::put('number', $request->number);
-Session::put('type', $request->type);
-Session::put('plancode', $meter->billercode);
-Session::put('meter', $meter->name);
-Session::put('cost', $request->amount);
-return redirect()->route('user.billvalidated');
-}
-
-
-}
-
-
- public function billvalidated(){
-
-    $settings = GeneralSetting::first();
-    $customer = Session::get('customer');
-    $number = Session::get('number');
-    $address = Session::get('address');
-    $plancode = Session::get('plancode');
-    $meter = Session::get('meter');
-    $cost = Session::get('cost');
-    $type = Session::get('type');
-
-    $pageTitle = "Utility Bill Validation";
-   return view($this->activeTemplate . 'user.bills.utility-preview', compact('pageTitle','customer','number','plancode','meter','cost','type','address'));
+    return response()->json([
+        'code'=>200,
+        'status'=>true,
+        'message'=>'Validated successfully',
+        'data' => ['customer' => $reply['content']['Customer_Name'], 'address' => $reply['content']['Address'] ]
+    ]);
 }
 
 
-
+}
 
 public function billpay(Request $request)
 {
    $request->validate([
         'number' => 'required',
-        'customer' => 'required',
+       'company' => 'required|string',
+       'type' => 'required',
+       'amount' => 'required|integer|min:1000',
 
     ]);
 
-    $meter  = Power::whereBillercode($request->company)->first();
     $mode = env('MODE');
     $username = env('VTPASSUSERNAME');
     $password = env('VTPASSPASSWORD');
@@ -1266,12 +1359,15 @@ public function billpay(Request $request)
     $wallet = Userwallet::whereWcode($user->wcode)->first();
     $total = $request->amount + env('POWERCHARGE');
 
-    $usd = $total/$general->usdrate;
+    $usd = $total;
 
-    $meter  = Power::whereBillercode($request->plan)->first();
+    $meter  = Power::whereBillercode($request->company)->first();
      if ($usd > $wallet->balance) {
-        $notify[] = ['error', 'Insufficient Wallet Balance'];
-        return back()->withNotify($notify);
+         return response()->json([
+             'code'=>200,
+             'status'=>false,
+             'message'=>'Insufficient Wallet Balance'
+         ]);
     }
 
     if($mode == 0)
@@ -1314,29 +1410,41 @@ curl_close($curl);
 
 
  if(!isset($reply['code'])) {
-$notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-return back()->withNotify($notify);
+     return response()->json([
+         'code'=>200,
+         'status'=>false,
+         'message'=>'Sorry, We cant process this payment at the moment'
+     ]);
 }
 
 //return $reply;
 if(isset($reply['content']['errors'] ))
     {
-    $notify[] = ['warning', 'API '.$reply['content']['errors']];
-    return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'API '.$reply['content']['errors']
+        ]);
     }
 
 
  if($reply['code'] != "000") {
-$notify[] = ['error', 'Sorry, We cant process tbis payment at the moment'];
-return back()->withNotify($notify);
+     return response()->json([
+         'code'=>200,
+         'status'=>false,
+         'message'=>'Sorry, We cant process this payment at the moment'
+     ]);
 }
 
 
 
      if(!isset($reply['content']['transactions']['transactionId']))
     {
-        $notify[] = ['error', 'Sorry, We cant process this payment at the moment'];
-            return back()->withNotify($notify);
+        return response()->json([
+            'code'=>200,
+            'status'=>false,
+            'message'=>'Sorry, We cant process this payment at the moment'
+        ]);
     }
 if($reply['code']== "000") {
 
@@ -1378,12 +1486,16 @@ if($reply['code']== "000") {
         $transactions->usd_amount = $usd;
         $transactions->charge = env('POWERCHARGE');
         $transactions->trx_type = '-';
-        $transactions->action = 'Paid '.$meter->name.' Utlity Bill';
+        $transactions->action = 'Paid '.$meter->name.' Utility Bill';
         $transactions->details = 'Payment For '.$meter->name.' utility bill with transaction number '.$transaction->trx;
         $transactions->trx = $transaction->trx;
         $transactions->save();
-        $notify[] = ['success', 'Payment Was Successfully'];
-        return redirect()->route('user.utility')->withNotify($notify);
+
+    return response()->json([
+        'code'=>200,
+        'status'=>true,
+        'message'=>'Payment was successful'
+    ]);
 }
 
 

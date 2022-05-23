@@ -7,6 +7,7 @@ use App\Models\AdminNotification;
 use App\Models\Deposit;
 use App\Models\GeneralSetting;
 use App\Models\Transaction;
+use App\Models\Userwallet;
 use App\Models\WithdrawMethod;
 use App\Models\Withdrawal;
 use App\Rules\FileTypeValidate;
@@ -101,6 +102,17 @@ class UserController extends Controller
             'code'=>200,
             'status'=>'ok',
             'message'=>['error'=>$notify],
+        ]);
+	}
+
+	public function walletBalance(){
+        $user = auth()->user();
+	    $wallet=Userwallet::where("wcode", $user->wcode)->first();
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Fetched successfully',
+            'data' =>$wallet->balance
         ]);
 	}
 
