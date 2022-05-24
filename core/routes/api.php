@@ -96,6 +96,9 @@ Route::namespace('Api')->name('api.')->group(function(){
 
             Route::get('wallet/balance', 'UserController@walletBalance');
 
+            Route::get('address', 'UserController@getAddress');
+            Route::post('address', 'UserController@submitAddress');
+
 	    });
 	});
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use App\Models\AdminNotification;
 use App\Models\Deposit;
 use App\Models\GeneralSetting;
@@ -12,6 +13,7 @@ use App\Models\WithdrawMethod;
 use App\Models\Withdrawal;
 use App\Rules\FileTypeValidate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
@@ -383,13 +385,56 @@ class UserController extends Controller
 
     public function transactions(){
         $user = auth()->user();
-        $transactions = $user->transactions()->paginate(getPaginate());
+        $transactions = $user->transactions();
         return response()->json([
             'code'=>200,
-            'status'=>'ok',
-            'data'=>[
-                'transactions'=>$transactions,
-            ]
+            'status'=>true,
+            'data'=>$transactions
+        ]);
+    }
+
+
+    public function getAddress(){
+        $address = Address::where([['user_id', auth()->user()->id], ['status', 1]])->get();
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'data'=>$address
+        ]);
+    }
+
+    public function submitAddress(Request $request){
+        $validator = Validator::make($request->all(),[
+            'country' => 'required|string|max:50',
+            'address' => 'required|string|max:200',
+            'name' => 'required|string|max:200',
+            'phone_number' => 'required|max:20'
+        ],[
+            'address.required'=>'Address field is required',
+            'name.required'=>'Name field is required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code'=>200,
+                'status'=>true,
+                'message'=>$validator->errors()->all(),
+            ]);
+        }
+
+        $data=Address::create([
+            'user_id' => Auth::id(),
+            'country' => $request->country,
+            'address' => $request->address,
+            'name' => $request->name,
+            'phone_number' => $request->phone_number
+        ]);
+
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>"Added successfully",
+            'data'=>$data
         ]);
     }
 }
