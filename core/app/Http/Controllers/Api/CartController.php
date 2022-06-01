@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Address;
 use App\Models\AssignProductAttribute;
 use App\Models\Cart;
 use App\Models\Deliverysetup;
@@ -158,6 +159,18 @@ class CartController extends Controller
             'shipping_method'   => 'required|integer',
             'address'          => 'required',
             'state'             => 'required|max:50'
+        ]);
+
+        $address = Address::where([['user_id', auth()->user()->id], ['status', 1], ['default', 1]])->first();
+
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Fetched Successfully',
+            'data' => [
+                'fee'=>'500',
+                'address' =>$address
+            ]
         ]);
 
 

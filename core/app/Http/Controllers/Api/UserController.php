@@ -403,6 +403,29 @@ class UserController extends Controller
         ]);
     }
 
+    public function addressSetDefault($id){
+        $address = Address::where([['user_id', auth()->user()->id], ['status', 1], ['id', $id]])->first();
+
+        if(!$address){
+            return response()->json([
+                'code'=>200,
+                'status'=>false,
+                'message'=>"Address does not exist"
+            ]);
+        }
+
+        Address::where([['user_id', auth()->user()->id]])->update(['default' => 0]);
+
+        $address->default=1;
+        $address->save();
+
+        return response()->json([
+            'code'=>200,
+            'status'=>true,
+            'message'=>'Address set successfully'
+        ]);
+    }
+
     public function submitAddress(Request $request){
         $validator = Validator::make($request->all(),[
             'country' => 'required|string|max:50',

@@ -98,6 +98,7 @@ Route::namespace('Api')->name('api.')->group(function(){
 
             Route::get('address', 'UserController@getAddress');
             Route::post('address', 'UserController@submitAddress');
+            Route::post('address/setdefault/{id}', 'UserController@addressSetDefault');
 
 	    });
 	});
