@@ -161,15 +161,12 @@ class CartController extends Controller
             'state'             => 'required|max:50'
         ]);
 
-        $address = Address::where([['user_id', auth()->user()->id], ['status', 1], ['default', 1]])->first();
-
         return response()->json([
             'code'=>200,
             'status'=>true,
             'message'=>'Fetched Successfully',
             'data' => [
-                'fee'=>'500',
-                'address' =>$address
+                'fee'=>'500'
             ]
         ]);
 
