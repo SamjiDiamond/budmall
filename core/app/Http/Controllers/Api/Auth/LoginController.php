@@ -63,7 +63,7 @@ class LoginController extends Controller
             return response()->json([
                 'code'=>401,
                 'status'=>false,
-                'message'=>'Unauthorized user',
+                'message'=>'Invalid login credentials',
             ]);
         }
 

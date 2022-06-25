@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Country;
+use App\Models\Frontend;
 use App\Models\GeneralSetting;
 use App\Models\Language;
 use App\Models\Offer;
@@ -77,6 +78,17 @@ class BasicController extends Controller
 	        'message'=>[
 	        	'language_data'=>$languageData
 	        ]
+	    ]);
+    }
+
+    public function sliders(){
+    	$frts = Frontend::where('data_keys', 'banner_promotional.element')->orwhere('data_keys', 'banner_sliders.element')->get();
+
+		return response()->json([
+			'code'=>200,
+			'status'=>true,
+	        'message'=>"Fetched",
+            'data' => $frts
 	    ]);
     }
 }

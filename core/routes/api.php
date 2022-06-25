@@ -8,6 +8,8 @@ Route::namespace('Api')->name('api.')->group(function(){
 	Route::get('languages','BasicController@languages');
 	Route::get('language-data/{code}','BasicController@languageData');
 
+    Route::get('sliders', 'BasicController@sliders');
+
     Route::get('countries', 'BasicController@country');
 
 	Route::namespace('Auth')->group(function(){
