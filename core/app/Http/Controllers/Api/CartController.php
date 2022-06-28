@@ -166,7 +166,7 @@ class CartController extends Controller
             'status'=>true,
             'message'=>'Fetched Successfully',
             'data' => [
-                'fee'=>'500'
+                'fee'=>'450'
             ]
         ]);
 

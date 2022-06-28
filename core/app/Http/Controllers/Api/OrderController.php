@@ -38,7 +38,10 @@ class OrderController extends Controller
     public function orders()
     {
         $query = Order::where('user_id', auth()->user()->id)->whereIn('payment_status', [1, 2]);
-        $orders = $query->latest()->get();
+        $orders = $query->latest()->with('deposit', 'orderDetail','appliedCoupon')->select('id', 'order_number', 'status', 'payment_status')->get();
+
+//        $order = Order::where('order_number', $order_number)->where('user_id', auth()->user()->id)->with('deposit', 'orderDetail','appliedCoupon')->first();
+
         return response()->json([
             'code' => 200,
             'status' => true,
@@ -135,6 +138,14 @@ class OrderController extends Controller
         $delivery = $request->delivery_calculation;
         $product_categories = [];
         //return $carts_data;
+
+        if (count($carts_data) < 1){
+            return response()->json([
+                'code' => 200,
+                'status' => false,
+                'message' => "Your cart is currently empty"
+            ]);
+        }
 
         foreach ($carts_data as $cart) {
             //$product_categories[] = $cart->product->categories->pluck('id')->toArray();
@@ -359,7 +370,6 @@ class OrderController extends Controller
         $user = auth()->user();
         if ($request->payment == "wallet") {
 
-
             $wallet = Userwallet::whereWcode($user->wcode)->first();
             if (!$wallet) {
                 $wcode = getTrx();
@@ -382,6 +392,10 @@ class OrderController extends Controller
             } elseif ($wallet->balance >= $takeorder->total_amount_usd) {
                 $wallet->balance -= $takeorder->total_amount_usd;
                 $wallet->save();
+
+                $takeorder->payment_status=1;
+                $takeorder->save();
+
 
                 Cart::where('session_id', session('session_id'))->orWhere('user_id', auth()->user()->id ?? null)->delete();
 
